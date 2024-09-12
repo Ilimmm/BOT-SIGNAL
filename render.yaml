@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: my-bot
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python bot.py"
+    port: 8080  # Убедитесь, что порт совпадает с тем, который ваш бот использует
