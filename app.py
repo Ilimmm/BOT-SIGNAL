@@ -1,6 +1,19 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from flask import Flask, request, jsonify
+from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters
+import threading
+import logging
 
+app = Flask(__name__)
+
+# Создание экземпляра бота
+TOKEN = '7545398584:AAFcd88RjWIU4UxdXNN2EEtTlpfTPRmT0v8'
+application = ApplicationBuilder().token(TOKEN).build()
+
+# Настройка логирования
+logging.basicConfig(level=logging.INFO)
+
+# Функция для отправки приветственного сообщения с фото
 async def start(update: Update, context):
     photo_url = 'https://i.postimg.cc/d3m8Lcpm/mines.jpg'
     welcome_text = """Welcome to 🔸MINES HYDRA🔸!
@@ -25,7 +38,7 @@ It can predict the location of stars with an 85% probability.</code>"""
                 message_id=context.chat_data['message_id']
             )
         except Exception as e:
-            print(f"Error deleting message: {e}")
+            logging.error(f"Error deleting message: {e}")
         del context.chat_data['message_id']
 
     message = await context.bot.send_photo(
@@ -37,10 +50,10 @@ It can predict the location of stars with an 85% probability.</code>"""
     )
     context.chat_data['message_id'] = message.message_id
 
+# Функция для обработки нажатий на кнопки
 async def button(update: Update, context):
     query = update.callback_query
     await query.answer()
-
     data = query.data
     user_id = update.effective_user.id
 
@@ -51,7 +64,7 @@ async def button(update: Update, context):
                 message_id=context.chat_data['message_id']
             )
         except Exception as e:
-            print(f"Error deleting message: {e}")
+            logging.error(f"Error deleting message: {e}")
         del context.chat_data['message_id']
 
     if data == 'register':
@@ -130,6 +143,7 @@ Follow these instructions for maximum profit:
     elif data == 'main_menu':
         await start(update, context)
 
+# Функция для получения ID или скриншота от пользователя
 async def handle_message(update: Update, context):
     user_id = update.effective_user.id
     message = update.message.text
@@ -155,12 +169,21 @@ async def handle_message(update: Update, context):
             ])
         )
 
-async def setup_bot():
-    application = ApplicationBuilder().token('7545398584:AAFcd88RjWIU4UxdXNN2EEtTlpfTPRmT0v8').build()
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    payload = request.get_json()
+    update = Update.de_json(payload, application.bot)
+    application.process_update(update)
+    return jsonify(status='ok')
 
-    application.add_handler(CommandHandler('start', start))
-    application.add_handler(CallbackQueryHandler(button))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+def set_webhook():
+    import asyncio
+    from telegram import Bot
+    bot = Bot(TOKEN)
+    webhook_url = 'https://hydra-python.onrender.com/webhook'
+    asyncio.run(bot.set_webhook(webhook_url))
 
-    await application.initialize()
-    return application
+# Запуск сервера и установка вебхука в отдельном потоке
+if __name__ == "__main__":
+    threading.Thread(target=set_webhook).start()
+    app.run(host="0.0.0.0", port=8000)
