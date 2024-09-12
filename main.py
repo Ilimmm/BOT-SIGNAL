@@ -1,12 +1,15 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from fastapi import FastAPI, Request
+from telegram import Bot, Update
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters
+import uvicorn
 
-# Функция для отправки приветственного сообщения с фото
+app = FastAPI()
+bot_token = '7545398584:AAFcd88RjWIU4UxdXNN2EEtTlpfTPRmT0v8'
+bot = Bot(token=bot_token)
+
+# Функции для Telegram бота
 async def start(update: Update, context):
-    # Путь к изображению или URL
     photo_url = 'https://i.postimg.cc/d3m8Lcpm/mines.jpg'
-
-    # Текст под фото с моноширинным текстом
     welcome_text = """Welcome to 🔸MINES HYDRA🔸!
 
 💣Mines is a gambling game at the 1win betting office, based on the classic “Minesweeper”.
@@ -14,8 +17,7 @@ Your goal is to open safe cells without triggering traps.
 
 <code>Our bot is powered by OpenAI's neural network.
 It can predict the location of stars with an 85% probability.</code>"""
-
-    # Создание кнопок
+    
     keyboard = [
         [InlineKeyboardButton("📝 REGISTRATION", callback_data='register'),
          InlineKeyboardButton("📚 INSTRUCTION", callback_data='instruction')],
@@ -23,7 +25,6 @@ It can predict the location of stars with an 85% probability.</code>"""
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    # Удаляем предыдущее сообщение, если оно существует
     if 'message_id' in context.chat_data:
         try:
             await context.bot.delete_message(
@@ -34,7 +35,6 @@ It can predict the location of stars with an 85% probability.</code>"""
             print(f"Error deleting message: {e}")
         del context.chat_data['message_id']
 
-    # Отправка фото с текстом и кнопками
     message = await context.bot.send_photo(
         chat_id=update.effective_chat.id,
         photo=photo_url,
@@ -43,19 +43,15 @@ It can predict the location of stars with an 85% probability.</code>"""
         reply_markup=reply_markup
     )
     
-    # Сохраняем идентификатор сообщения в context.chat_data
     context.chat_data['message_id'] = message.message_id
 
-# Функция для обработки нажатий на кнопки
 async def button(update: Update, context):
     query = update.callback_query
     await query.answer()
 
-    # Получение данных callback'а
     data = query.data
     user_id = update.effective_user.id
 
-    # Удаление старого сообщения, если оно существует
     if 'message_id' in context.chat_data:
         try:
             await context.bot.delete_message(
@@ -64,23 +60,19 @@ async def button(update: Update, context):
             )
         except Exception as e:
             print(f"Error deleting message: {e}")
-        # Удаляем запись о старом сообщении
         del context.chat_data['message_id']
 
     if data == 'register':
-        # Отправляем фото и текст после нажатия на "REGISTRATION"
         registration_photo_url = 'https://i.postimg.cc/HWQ0Sbnc/registration.jpg'
         registration_text = """After registration, send your user ID to confirm.
         Then you will receive access to the signals!"""
 
-        # Создание кнопок для регистрации
         keyboard = [
             [InlineKeyboardButton("🔗 REGISTRATION", url='https://1wimdx.life/casino/list?open=register&p=dcau')],
             [InlineKeyboardButton("🏠 MAIN MENU", callback_data='main_menu')]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
 
-        # Отправка фото с текстом и кнопками
         message = await context.bot.send_photo(
             chat_id=update.effective_chat.id,
             photo=registration_photo_url,
@@ -89,11 +81,9 @@ async def button(update: Update, context):
             reply_markup=reply_markup
         )
 
-        # Сохраняем идентификатор сообщения в context.chat_data
         context.chat_data['message_id'] = message.message_id
 
     elif data == 'get_signal':
-        # Проверяем, зарегистрирован ли пользователь
         if 'registered_users' in context.chat_data and user_id in context.chat_data['registered_users']:
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -113,7 +103,6 @@ async def button(update: Update, context):
             )
 
     elif data == 'instruction':
-        # Отправляем подробные инструкции с кнопкой MAIN MENU
         instruction_text = """The bot is based on and trained using OpenAI's neural network cluster 🖥[ChatGPT-v4].
 
 For training, the bot played 🎰over 8000 games.
@@ -145,20 +134,16 @@ Follow these instructions for maximum profit:
             parse_mode='HTML',
             reply_markup=reply_markup
         )
-        # Сохраняем идентификатор нового сообщения
         context.chat_data['message_id'] = message.message_id
 
     elif data == 'main_menu':
-        # Возвращаем на начальный экран
         await start(update, context)
 
-# Функция для получения ID или скриншота от пользователя
 async def handle_message(update: Update, context):
     user_id = update.effective_user.id
     message = update.message.text
 
-    # Пример проверки полученного сообщения (ID, скриншот или другой формат)
-    if message.isdigit() and len(message) >= 8:  # Проверяем, что ID это число и минимум 8 символов
+    if message.isdigit() and len(message) >= 8:
         if 'registered_users' not in context.chat_data:
             context.chat_data['registered_users'] = []
         context.chat_data['registered_users'].append(user_id)
@@ -180,17 +165,30 @@ async def handle_message(update: Update, context):
         )
 
 # Настройка бота
-if __name__ == '__main__':
-    application = ApplicationBuilder().token('7545398584:AAFcd88RjWIU4UxdXNN2EEtTlpfTPRmT0v8').build()
+async def set_webhook():
+    webhook_url = 'https://hydra-python.onrender.com'  # Замените на ваш URL
+    await bot.set_webhook(url=webhook_url)
 
-    # Обработчик команды /start
+@app.post("/webhook")
+async def webhook(request: Request):
+    json_str = await request.json()
+    update = Update.de_json(json_str, bot)
+    await ApplicationBuilder().token(bot_token).build().process_update(update)
+    return {"status": "ok"}
+
+if __name__ == "__main__":
+    import asyncio
+    from telegram.ext import ApplicationBuilder
+    application = ApplicationBuilder().token(bot_token).build()
+
     application.add_handler(CommandHandler('start', start))
-
-    # Обработчик callback query
     application.add_handler(CallbackQueryHandler(button))
-
-    # Обработчик сообщений (для получения ID или скриншота)
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    # Запуск бота
-    application.run_polling()
+    # Запуск бота и сервера
+    loop = asyncio.get_event_loop()
+    loop.create_task(set_webhook())
+    loop.run_until_complete(asyncio.gather(
+        application.run_polling(),
+        uvicorn.run("main:app", host="0.0.0.0", port=8000)
+    ))
