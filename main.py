@@ -4,7 +4,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandle
 # Функция для отправки приветственного сообщения с фото
 async def start(update: Update, context):
     # Путь к изображению или URL
-    photo_url = 'C:/Users/Predator/Desktop/minesbot/img/mines.jpg'
+    photo_url = 'https://i.postimg.cc/d3m8Lcpm/mines.jpg'
 
     # Текст под фото с моноширинным текстом
     welcome_text = """Welcome to 🔸MINES HYDRA🔸!
@@ -69,7 +69,7 @@ async def button(update: Update, context):
 
     if data == 'register':
         # Отправляем фото и текст после нажатия на "REGISTRATION"
-        registration_photo_url = 'C:/Users/Predator/Desktop/minesbot/img/registration.jpg'
+        registration_photo_url = 'https://i.postimg.cc/HWQ0Sbnc/registration.jpg'
         registration_text = """After registration, send your user ID to confirm.
         Then you will receive access to the signals!"""
 
