@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
-from telegram import Update, Bot
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters
+from telegram import Update, Bot, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters
+from telegram.ext import ContextTypes
 import os
 
 # Создание FastAPI приложения
@@ -11,10 +12,10 @@ TOKEN = '7545398584:AAFcd88RjWIU4UxdXNN2EEtTlpfTPRmT0v8'
 bot = Bot(token=TOKEN)
 
 # Создание приложения Telegram
-application = Application.builder().token(TOKEN).build()
+application = ApplicationBuilder().token(TOKEN).build()
 
 # Определение обработчиков команд и сообщений
-async def start(update: Update, context):
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     photo_url = 'https://i.postimg.cc/d3m8Lcpm/mines.jpg'
     welcome_text = """Welcome to 🔸MINES HYDRA🔸!
     
@@ -50,7 +51,7 @@ async def start(update: Update, context):
     )
     context.chat_data['message_id'] = message.message_id
 
-async def button(update: Update, context):
+async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
 
@@ -144,7 +145,7 @@ async def button(update: Update, context):
     elif data == 'main_menu':
         await start(update, context)
 
-async def handle_message(update: Update, context):
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.effective_user.id
     message = update.message.text
 
@@ -170,9 +171,15 @@ async def handle_message(update: Update, context):
             ]])
         )
 
+# Добавление обработчиков в приложение Telegram
+application.add_handler(CommandHandler("start", start))
+application.add_handler(CallbackQueryHandler(button))
+application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
 @app.post("/webhook")
 async def webhook(request: Request):
-    update = Update.de_json(await request.json(), bot)
+    json_update = await request.json()
+    update = Update.de_json(json_update, bot)
     await application.process_update(update)
     return {"status": "ok"}
 
