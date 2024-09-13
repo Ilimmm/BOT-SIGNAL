@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from telegram import Update, Bot, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters
 from telegram.ext import ContextTypes
 import os
 
@@ -11,8 +11,8 @@ app = FastAPI()
 TOKEN = '7545398584:AAFcd88RjWIU4UxdXNN2EEtTlpfTPRmT0v8'
 bot = Bot(token=TOKEN)
 
-# Создание приложения Telegram
-application = ApplicationBuilder().token(TOKEN).build()
+# Создание приложения Telegram и инициализация
+application = Application.builder().token(TOKEN).build()
 
 # Определение обработчиков команд и сообщений
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
