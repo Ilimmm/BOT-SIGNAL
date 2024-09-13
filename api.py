@@ -2,6 +2,7 @@ from flask import Flask, request
 import telegram
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters
+import asyncio
 
 # Flask приложение
 app = Flask(__name__)
@@ -174,8 +175,8 @@ async def handle_message(update: Update, context):
 @app.route('/webhook', methods=['POST'])
 def webhook():
     update = telegram.Update.de_json(request.get_json(force=True), bot)
-    application.process_update(update)
+    asyncio.run(application.process_update(update))
     return "OK", 200
 
 if __name__ == '__main__':
-    app.run(port=5000)
+    app.run(port=5000, debug=True)
