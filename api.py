@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, Request
 import telegram
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
