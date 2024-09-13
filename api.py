@@ -1,11 +1,11 @@
-from flask import Flask, request
+from fastapi import FastAPI, Request
 import telegram
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters
 import asyncio
 
-# Flask приложение
-app = Flask(__name__)
+# FastAPI приложение
+app = FastAPI()
 
 # Токен бота
 TOKEN = '7545398584:AAFcd88RjWIU4UxdXNN2EEtTlpfTPRmT0v8'
@@ -172,11 +172,9 @@ async def handle_message(update: Update, context):
         )
 
 # Вебхук для Telegram
-@app.route('/webhook', methods=['POST'])
-def webhook():
-    update = telegram.Update.de_json(request.get_json(force=True), bot)
-    asyncio.run(application.process_update(update))
+@app.post('/webhook')
+async def webhook(request: Request):
+    update = telegram.Update.de_json(await request.json(), bot)
+    asyncio.create_task(application.process_update(update))
     return "OK", 200
 
-if __name__ == '__main__':
-    app.run(port=5000, debug=True)
