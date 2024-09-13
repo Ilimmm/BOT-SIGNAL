@@ -8,7 +8,7 @@ import os
 app = FastAPI()
 
 # Токен бота и создание объекта Bot
-TOKEN = '7545398584:AAFcd88RjWIU4UxdXNN2EEtTlpfTPRmT0v8'
+TOKEN = os.getenv("7545398584:AAFcd88RjWIU4UxdXNN2EEtTlpfTPRmT0v8")
 bot = Bot(token=TOKEN)
 
 # Инициализация приложения Telegram
@@ -180,6 +180,15 @@ async def webhook(request: Request):
     update = Update.de_json(json_update, bot)
     await application.process_update(update)
     return {"status": "ok"}
+
+@app.on_event("startup")
+async def on_startup():
+    webhook_url = "https://hydra-python.onrender.com/webhook"  # Замените на ваш URL
+    await bot.set_webhook(webhook_url)
+
+@app.on_event("shutdown")
+async def on_shutdown():
+    await bot.delete_webhook()
 
 if __name__ == '__main__':
     import uvicorn
