@@ -1,21 +1,19 @@
-import os
 from fastapi import FastAPI, Request
-import telegram
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters
-import asyncio
+from telegram import Update, Bot
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters
+import os
 
-# FastAPI приложение
+# Создание FastAPI приложения
 app = FastAPI()
 
-# Токен бота
+# Токен бота и создание объекта Bot
 TOKEN = '7545398584:AAFcd88RjWIU4UxdXNN2EEtTlpfTPRmT0v8'
-bot = telegram.Bot(token=TOKEN)
+bot = Bot(token=TOKEN)
 
 # Создание приложения Telegram
-application = ApplicationBuilder().token(TOKEN).build()
+application = Application.builder().token(TOKEN).build()
 
-# Функция для отправки приветственного сообщения с фото
+# Определение обработчиков команд и сообщений
 async def start(update: Update, context):
     photo_url = 'https://i.postimg.cc/d3m8Lcpm/mines.jpg'
     welcome_text = """Welcome to 🔸MINES HYDRA🔸!
@@ -52,7 +50,6 @@ async def start(update: Update, context):
     )
     context.chat_data['message_id'] = message.message_id
 
-# Функция для обработки нажатий на кнопки
 async def button(update: Update, context):
     query = update.callback_query
     await query.answer()
@@ -95,18 +92,19 @@ async def button(update: Update, context):
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text="You are successfully registered! You can now access the signals.",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("Open HYDRA SIGNALS", web_app=WebAppInfo(url='https://hydra-signal.onrender.com'))],
-                    [InlineKeyboardButton("🏠 MAIN MENU", callback_data='main_menu')]
-                ])
+                reply_markup=InlineKeyboardMarkup([[
+                    InlineKeyboardButton("Open HYDRA SIGNALS", web_app=WebAppInfo(url='https://hydra-signal.onrender.com'))
+                ], [
+                    InlineKeyboardButton("🏠 MAIN MENU", callback_data='main_menu')
+                ]])
             )
         else:
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text="Please complete registration and send your user ID or screenshot for confirmation.",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton("🏠 MAIN MENU", callback_data='main_menu')]
-                ])
+                reply_markup=InlineKeyboardMarkup([[
+                    InlineKeyboardButton("🏠 MAIN MENU", callback_data='main_menu')
+                ]])
             )
 
     elif data == 'instruction':
@@ -146,7 +144,6 @@ async def button(update: Update, context):
     elif data == 'main_menu':
         await start(update, context)
 
-# Функция для получения ID или скриншота от пользователя
 async def handle_message(update: Update, context):
     user_id = update.effective_user.id
     message = update.message.text
@@ -158,29 +155,28 @@ async def handle_message(update: Update, context):
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text="Thank you! You are now registered and can access the signals.",
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("Open HYDRA SIGNALS", web_app=WebAppInfo(url='https://hydra-signal.onrender.com'))],
-                [InlineKeyboardButton("🏠 MAIN MENU", callback_data='main_menu')]
-            ])
+            reply_markup=InlineKeyboardMarkup([[
+                InlineKeyboardButton("Open HYDRA SIGNALS", web_app=WebAppInfo(url='https://hydra-signal.onrender.com'))
+            ], [
+                InlineKeyboardButton("🏠 MAIN MENU", callback_data='main_menu')
+            ]])
         )
     else:
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text="Please send a valid ID (at least 8 digits) or screenshot of your registration.",
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("🏠 MAIN MENU", callback_data='main_menu')]
-            ])
+            reply_markup=InlineKeyboardMarkup([[
+                InlineKeyboardButton("🏠 MAIN MENU", callback_data='main_menu')
+            ]])
         )
 
-# Вебхук для Telegram
-@app.post('/webhook')
+@app.post("/webhook")
 async def webhook(request: Request):
-    update = telegram.Update.de_json(await request.json(), bot)
-    asyncio.create_task(application.process_update(update))
-    return "OK", 200
+    update = Update.de_json(await request.json(), bot)
+    await application.process_update(update)
+    return {"status": "ok"}
 
-# Запуск приложения
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))  # Получаем порт из переменной окружения или используем 5000 по умолчанию
     import uvicorn
+    port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
