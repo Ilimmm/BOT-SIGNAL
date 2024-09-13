@@ -166,9 +166,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text="Please send a valid ID (at least 8 digits) or screenshot of your registration.",
-            reply_markup=InlineKeyboardMarkup([[
-                InlineKeyboardButton("🏠 MAIN MENU", callback_data='main_menu')
-            ]])
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🏠 MAIN MENU", callback_data='main_menu')]])
         )
 
 # Добавление обработчиков в приложение Telegram
