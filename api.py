@@ -178,3 +178,8 @@ async def webhook(request: Request):
     asyncio.create_task(application.process_update(update))
     return "OK", 200
 
+# Запуск приложения
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 5000))  # Получаем порт из переменной окружения или используем 5000 по умолчанию
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=port)
