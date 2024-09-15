@@ -179,8 +179,10 @@ async def lifespan(app: FastAPI):
     webhook_url = "https://hydra-python.onrender.com/webhook"  # Ваш URL
     await application.initialize()
     await bot.set_webhook(webhook_url)
-    yield
-    await bot.delete_webhook()
+    try:
+        yield
+    finally:
+        await bot.delete_webhook()
 
 # Обновляем приложение FastAPI с использованием lifespan
 app = FastAPI(lifespan=lifespan)
