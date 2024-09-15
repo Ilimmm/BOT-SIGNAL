@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 app = FastAPI()
 
 # Токен бота и создание объекта Bot
-TOKEN = os.getenv('7545398584:AAFcd88RjWIU4UxdXNN2EEtTlpfTPRmT0v8')  # Используйте переменные окружения для токена
+TOKEN = '7545398584:AAFcd88RjWIU4UxdXNN2EEtTlpfTPRmT0v8'  # Ваш токен бота
 bot = Bot(token=TOKEN)
 
 # Инициализация приложения Telegram
