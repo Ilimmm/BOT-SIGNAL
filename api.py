@@ -201,7 +201,7 @@ application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_m
 # Новый способ управления жизненным циклом
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    webhook_url = "https://hydra-python.onrender.com/webhook"  # Ваш URL
+    webhook_url = "https://hydra-python-c9xh.onrender.com/webhook"  # Ваш URL
     try:
         await application.initialize()
         await bot.set_webhook(webhook_url)
