@@ -80,7 +80,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         Then you will receive access to the signals!"""
 
         keyboard = [
-            [InlineKeyboardButton("🔗 REGISTRATION", url='https://1wimdx.life/casino/list?open=register&p=dcau')],
+            [InlineKeyboardButton("🔗 REGISTRATION", url='https://1wimdx.life/casino/list?open=register&p=dcau')]],
             [InlineKeyboardButton("🏠 MAIN MENU", callback_data='main_menu')]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
@@ -177,6 +177,7 @@ application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_m
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     webhook_url = "https://hydra-python.onrender.com/webhook"  # Ваш URL
+    await application.initialize()
     await bot.set_webhook(webhook_url)
     yield
     await bot.delete_webhook()
