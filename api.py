@@ -3,12 +3,13 @@ from telegram import Update, Bot, InlineKeyboardButton, InlineKeyboardMarkup, We
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters
 from telegram.ext import ContextTypes
 import os
+from contextlib import asynccontextmanager
 
 # Создание FastAPI приложения
 app = FastAPI()
 
 # Токен бота и создание объекта Bot
-TOKEN = '7545398584:AAFcd88RjWIU4UxdXNN2EEtTlpfTPRmT0v8'  # Ваш токен
+TOKEN = '7545398584:AAFcd88RjWIU4UxdXNN2EEtTlpfTPRmT0v8'
 bot = Bot(token=TOKEN)
 
 # Инициализация приложения Telegram
@@ -53,6 +54,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
     context.chat_data['message_id'] = message.message_id
 
+# Обработка кнопок
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
@@ -144,6 +146,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     elif data == 'main_menu':
         await start(update, context)
 
+# Обработка сообщений
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.effective_user.id
     message = update.message.text
@@ -170,21 +173,22 @@ application.add_handler(CommandHandler("start", start))
 application.add_handler(CallbackQueryHandler(button))
 application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
+# Новый способ управления жизненным циклом
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    webhook_url = "https://hydra-python.onrender.com/webhook"  # Ваш URL
+    await bot.set_webhook(webhook_url)
+    yield
+    await bot.delete_webhook()
+
+app = FastAPI(lifespan=lifespan)
+
 @app.post("/webhook")
 async def webhook(request: Request):
     json_update = await request.json()
     update = Update.de_json(json_update, bot)
     await application.process_update(update)
     return {"status": "ok"}
-
-@app.on_event("startup")
-async def on_startup():
-    webhook_url = "https://hydra-python.onrender.com/webhook"  # Замените на ваш URL
-    await bot.set_webhook(webhook_url)
-
-@app.on_event("shutdown")
-async def on_shutdown():
-    await bot.delete_webhook()
 
 if __name__ == '__main__':
     import uvicorn
