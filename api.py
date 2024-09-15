@@ -183,6 +183,10 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+@app.get("/")
+async def read_root():
+    return {"message": "Telegram bot is running!"}
+
 @app.post("/webhook")
 async def webhook(request: Request):
     json_update = await request.json()
