@@ -8,7 +8,7 @@ import os
 app = FastAPI()
 
 # Токен бота и создание объекта Bot
-TOKEN = os.getenv("7545398584:AAFcd88RjWIU4UxdXNN2EEtTlpfTPRmT0v8")
+TOKEN = '7545398584:AAFcd88RjWIU4UxdXNN2EEtTlpfTPRmT0v8'  # Ваш токен
 bot = Bot(token=TOKEN)
 
 # Инициализация приложения Telegram
@@ -32,6 +32,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
+    # Удаление старого сообщения (если существует)
     if 'message_id' in context.chat_data:
         try:
             await context.bot.delete_message(
@@ -42,6 +43,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             print(f"Error deleting message: {e}")
         del context.chat_data['message_id']
 
+    # Отправка нового приветственного сообщения
     message = await context.bot.send_photo(
         chat_id=update.effective_chat.id,
         photo=photo_url,
@@ -58,6 +60,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     data = query.data
     user_id = update.effective_user.id
 
+    # Удаление старого сообщения (если существует)
     if 'message_id' in context.chat_data:
         try:
             await context.bot.delete_message(
@@ -68,6 +71,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             print(f"Error deleting message: {e}")
         del context.chat_data['message_id']
 
+    # Обработка различных команд
     if data == 'register':
         registration_photo_url = 'https://i.postimg.cc/HWQ0Sbnc/registration.jpg'
         registration_text = """After registration, send your user ID to confirm.
@@ -93,19 +97,14 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text="You are successfully registered! You can now access the signals.",
-                reply_markup=InlineKeyboardMarkup([[
-                    InlineKeyboardButton("Open HYDRA SIGNALS", web_app=WebAppInfo(url='https://hydra-signal.onrender.com'))
-                ], [
-                    InlineKeyboardButton("🏠 MAIN MENU", callback_data='main_menu')
-                ]])
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Open HYDRA SIGNALS", web_app=WebAppInfo(url='https://hydra-signal.onrender.com'))],
+                                                  [InlineKeyboardButton("🏠 MAIN MENU", callback_data='main_menu')]])
             )
         else:
             await context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text="Please complete registration and send your user ID or screenshot for confirmation.",
-                reply_markup=InlineKeyboardMarkup([[
-                    InlineKeyboardButton("🏠 MAIN MENU", callback_data='main_menu')
-                ]])
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🏠 MAIN MENU", callback_data='main_menu')]])
             )
 
     elif data == 'instruction':
@@ -156,11 +155,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
             text="Thank you! You are now registered and can access the signals.",
-            reply_markup=InlineKeyboardMarkup([[
-                InlineKeyboardButton("Open HYDRA SIGNALS", web_app=WebAppInfo(url='https://hydra-signal.onrender.com'))
-            ], [
-                InlineKeyboardButton("🏠 MAIN MENU", callback_data='main_menu')
-            ]])
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Open HYDRA SIGNALS", web_app=WebAppInfo(url='https://hydra-signal.onrender.com'))],
+                                              [InlineKeyboardButton("🏠 MAIN MENU", callback_data='main_menu')]])
         )
     else:
         await context.bot.send_message(
